@@ -3,3 +3,5 @@ test
 
 # ignore random Vivado files
 vivado*
+.Xil
+.nfs*
