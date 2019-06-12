@@ -26,28 +26,35 @@ struct meta{
     ap_uint <32> remote_ip;
 };
 
-ap_uint <512> reverse_endian_512_tdata(ap_uint <512> X);
-ap_uint <64> reverse_endian_512_tkeep(ap_uint <64> X);
+// ap_uint <512> reverse_endian_512_tdata(ap_uint <512> X);
+// ap_uint <64> reverse_endian_512_tkeep(ap_uint <64> X);
 
 void udp_to_app(
     hls::stream <udp_axis> & from_udp,
-    hls::stream <app_axis> & to_app
+    hls::stream <app_axis> & to_app,
+
+    meta meta_from_udp,
+    meta & meta_to_app
 );
 
 void app_to_udp(
     hls::stream <app_axis> & from_app,
-    hls::stream <udp_axis> & to_udp
+    hls::stream <udp_axis> & to_udp,
+    
+    meta meta_from_app,
+    meta & meta_to_udp
 );
 
 void udp_bridge (
+    hls::stream <udp_axis> & from_udp,
     hls::stream <app_axis> & to_app,
     hls::stream <app_axis> & from_app,
     hls::stream <udp_axis> & to_udp,
-    hls::stream <udp_axis> & from_udp
-    // ,
 
-    // hls::stream <meta> & meta_in,
-    // hls::stream <meta> & meta_out
+    meta meta_from_udp,
+    meta & meta_to_app,
+    meta meta_from_app,
+    meta & meta_to_udp
 );
 
 #endif // __UDP_BRIDGE_H__
