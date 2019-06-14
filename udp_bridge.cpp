@@ -22,7 +22,7 @@ void udp_to_app(
     meta meta_from_udp,
     meta & meta_to_app
 ) {
-
+// #pragma HLS INLINE
 #pragma HLS PIPELINE II=1
 
 #define INIT_UDP_TO_APP 0
@@ -37,7 +37,7 @@ void udp_to_app(
 
     // buf[1] logic
     if(!bufen[1]){ // if buf[1] is empty shift in buf[0]
-        axis_buf[1] = axis_buf[0];
+        axis_buf[1] = axis_buf[0]; // implemented as mux instead of enable
         meta_buf[1] = meta_buf[0];
         bufen[1] = bufen[0];
         bufen[0] = 0;
@@ -104,15 +104,15 @@ void app_to_udp(
     meta meta_from_app,
     meta & meta_to_udp
 ) {
-
+// #pragma HLS INLINE
 #pragma HLS PIPELINE II=1
 
 #define INIT_APP_TO_UDP 0
 #define STREAM_APP_TO_UDP 1
 #define END_APP_TO_UDP 2
 
-    hls::stream <app_axis> axis_from_app_buf;
-    hls::stream <meta> meta_from_app_buf;
+    static hls::stream <app_axis> axis_from_app_buf;
+    static hls::stream <meta> meta_from_app_buf;
 
 #pragma HLS stream variable=axis_from_app_buf depth=4
 #pragma HLS stream variable=meta_from_app_buf depth=4
@@ -126,15 +126,14 @@ void app_to_udp(
 
     // internal buf logic
     if(!axis_from_app.empty() && !axis_from_app_buf.full()){
-    // if(!axis_from_app.empty()){
         axis_from_app_buf.write(axis_from_app.read());
         meta_from_app_buf.write(meta_from_app);
     }
 
     switch(state){
         case INIT_APP_TO_UDP:{
-            if(!axis_from_app.empty()){
-                app_axis_packet = axis_from_app.read();
+            if(!axis_from_app_buf.empty()){
+                app_axis_packet = axis_from_app_buf.read();
                 metadata = meta_from_app_buf.read();
 				udp_axis_packet.tdata.range(511,496) = app_axis_packet.tdest;
                 udp_axis_packet.tdata.range(495,0) = app_axis_packet.tdata.range(511,16);
@@ -164,8 +163,8 @@ void app_to_udp(
             break;
         }
         case STREAM_APP_TO_UDP:{
-            if(!axis_from_app.empty()){
-                app_axis_packet = axis_from_app.read();
+            if(!axis_from_app_buf.empty()){
+                app_axis_packet = axis_from_app_buf.read();
                 metadata = meta_from_app_buf.read();
                 udp_axis_packet.tdata.range(511,496) = tdata_buf;
 				udp_axis_packet.tdata.range(495,0) = app_axis_packet.tdata.range(511,16);
@@ -222,9 +221,9 @@ void udp_bridge (
 
 #pragma HLS DATAFLOW
 
-#pragma HLS STREAM variable=axis_from_udp depth=1
+// #pragma HLS STREAM variable=axis_from_udp depth=0
 // #pragma HLS STREAM variable=axis_to_app depth=1
-#pragma HLS STREAM variable=axis_from_app depth=1
+// #pragma HLS STREAM variable=axis_from_app depth=1
 // #pragma HLS STREAM variable=axis_to_udp depth=1
 
 #pragma HLS RESOURCE core=AXI4Stream variable=axis_from_udp
@@ -242,7 +241,9 @@ void udp_bridge (
 #pragma HLS INTERFACE ap_none port=meta_from_app
 #pragma HLS INTERFACE ap_none port=meta_to_udp
 
+#ifdef __SYNTHESIS
 #pragma HLS INTERFACE ap_ctrl_none port=return
+#endif
 
     udp_to_app(axis_from_udp, axis_to_app, meta_from_udp, meta_to_app);
     app_to_udp(axis_from_app, axis_to_udp, meta_from_app, meta_to_udp);

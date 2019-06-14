@@ -348,27 +348,6 @@
 
 
 
-int check_meta(meta udp, meta app, meta ref){
-    int udp_good = 1;
-    int app_good = 1;
-    int good;
-    udp_good = udp_good && (udp.remote_port == ref.remote_port);
-    udp_good = udp_good && (udp.local_port == ref.local_port);
-    udp_good = udp_good && (udp.remote_ip == ref.remote_ip);
-    app_good = app_good && (app.remote_port == ref.remote_port);
-    app_good = app_good && (app.local_port == ref.local_port);
-    app_good = app_good && (app.remote_ip == ref.remote_ip);
-    std::cout << udp.remote_port << " " << ref.remote_port << std::endl;
-    std::cout << udp.local_port << " " << ref.local_port << std::endl;
-    std::cout << udp.remote_ip << " " << ref.remote_ip << std::endl;
-    std::cout << app.remote_port << " " << ref.remote_port << std::endl;
-    std::cout << app.local_port << " " << ref.local_port << std::endl;
-    std::cout << app.remote_ip << " " << ref.remote_ip << std::endl;
-    good = udp_good && app_good;
-    std::cout << "meta good result " << good << std::endl;
-    return good;
-}
-
 int main(){
 
     // ap_uint <16> src_port = SRC_PORT;
@@ -568,134 +547,6 @@ int main(){
     //     std::cout << "* Hard-Coded Test Result Good" << std::endl;
     //     std::cout << "*******************************" << std::endl;
     // }
-    
-    // std::cout << "*******************************" << std::endl;
-    // std::cout << "* Starting Random Tests" << std::endl;
-    // std::cout << "*******************************" << std::endl;
-
-    // udp_axis udp_axis_packet_in;
-    // udp_axis udp_axis_packet_out;
-
-    // int tkeep_index;
-
-    // std::queue <udp_axis> udp_axis_buf;
-    // std::queue <int> tkeep_index_buf;
-    
-    // // std::random_device rd;
-    // std::srand(2398472937);
-
-    // int first = 1;
-    // int test_runs = 20;
-
-    // int tdata_good;
-    // int tkeep_good;
-    // int tlast_good;
-    // int random_retval = 0;
-
-    // udp_axis_packet_in.tdata = "0x24AE65CCCBC496C26C2F4B75625D082CA1281D5A28EA6DBCCF447F30B15D0FA30BF33867B2A6D511664393C6DBABD04B2F1B2F205867B0A4AF2A2C3164C64DD3";
-    // udp_axis_packet_in.tkeep = "0x1";
-    // udp_axis_packet_in.tlast = "0x1";
-
-    // good = random_loopback(0,
-    //     udp_axis_packet_in,
-    //     udp_axis_packet_out
-    // );
-
-    // tlast_good = udp_axis_packet_out.tlast == udp_axis_packet_in.tlast;
-    // tkeep_good = udp_axis_packet_out.tkeep == udp_axis_packet_in.tkeep;
-    // tdata_good = udp_axis_packet_out.tdata(1*8+7,0) == udp_axis_packet_in.tdata(1*8+7,0);
-
-    // std::cout << std::hex;
-    // std::cout << "tdata_good " << tdata_good << " " << udp_axis_packet_out.tdata << " " << udp_axis_packet_in.tdata << std::endl;
-    // std::cout << "tkeep_good " << tkeep_good << " " << udp_axis_packet_out.tkeep << " " << udp_axis_packet_in.tkeep << std::endl;
-    // std::cout << "tlast_good " << tlast_good << " " << udp_axis_packet_out.tlast << " " << udp_axis_packet_in.tlast << std::endl;
-    // std::cout << std::dec;
-    // std::cout << std::endl;
-
-    // good = tdata_good && tkeep_good && tlast_good;
-    // random_retval = random_retval || (!good);
-
-    // std::cout << "Random Test iteration " << " results " << good << std::endl;
-    // std::cout << std::endl;
-
-    // for(int i=0; i<test_runs; i++){
-    //     udp_axis_packet_in.tdata.range(31,0) = std::rand();
-    //     udp_axis_packet_in.tdata.range(63,32) = std::rand();
-    //     udp_axis_packet_in.tdata.range(95,64) = std::rand();
-    //     udp_axis_packet_in.tdata.range(127,96) = std::rand();
-    //     udp_axis_packet_in.tdata.range(159,128) = std::rand();
-    //     udp_axis_packet_in.tdata.range(191,160) = std::rand();
-    //     udp_axis_packet_in.tdata.range(223,192) = std::rand();
-    //     udp_axis_packet_in.tdata.range(255,224) = std::rand();
-    //     udp_axis_packet_in.tdata.range(287,256) = std::rand();
-    //     udp_axis_packet_in.tdata.range(319,288) = std::rand();
-    //     udp_axis_packet_in.tdata.range(351,320) = std::rand();
-    //     udp_axis_packet_in.tdata.range(383,352) = std::rand();
-    //     udp_axis_packet_in.tdata.range(415,384) = std::rand();
-    //     udp_axis_packet_in.tdata.range(447,416) = std::rand();
-    //     udp_axis_packet_in.tdata.range(479,448) = std::rand();
-    //     udp_axis_packet_in.tdata.range(511,480) = std::rand();
-
-    //     udp_axis_packet_in.tlast = std::rand() % 2;
-
-    //     if(udp_axis_packet_in.tlast){
-    //         udp_axis_packet_in.tkeep = 0x0;
-    //         if(first){
-    //             tkeep_index = (std::rand() % 62); // first packet 2 bytes minimum for tdest
-    //         }
-    //         else{
-    //             tkeep_index = (std::rand() % 63); // every other packet 1 byte minimum
-    //         }
-    //         udp_axis_packet_in.tkeep.range(63, tkeep_index) = 0xFFFFFFFFFFFFFFFF;
-    //     }
-    //     else{
-    //         tkeep_index = 63;
-    //         udp_axis_packet_in.tkeep = 0xFFFFFFFFFFFFFFFF;
-    //     }
-
-    //     first = udp_axis_packet_in.tlast; // first is equal to last iteration's tlast
-
-    //     std::cout << std::hex;
-    //     std::cout << "udp_axis_packet_in.tdata " << udp_axis_packet_in.tdata << std::endl;
-    //     std::cout << "udp_axis_packet_in.tkeep " << udp_axis_packet_in.tkeep << std::endl;
-    //     std::cout << "udp_axis_packet_in.tlast " << udp_axis_packet_in.tlast << std::endl;
-    //     std::cout << std::dec;
-    //     std::cout << std::endl;
-
-    //     udp_axis_buf.push(udp_axis_packet_in);
-    //     tkeep_index_buf.push(tkeep_index);
-        
-    //     good = random_loopback(i,
-    //         udp_axis_packet_in,
-    //         udp_axis_packet_out
-    //     );
-
-    //     if(udp_axis_packet_out.tdata != 0 || udp_axis_packet_out.tkeep != 0 || udp_axis_packet_out.tlast != 0){
-    //         udp_axis_packet_in = udp_axis_buf.front();
-    //         udp_axis_buf.pop();
-    //         tlast_good = udp_axis_packet_out.tlast == udp_axis_packet_in.tlast;
-    //         tkeep_good = udp_axis_packet_out.tkeep == udp_axis_packet_in.tkeep;
-    //         tkeep_index = tkeep_index_buf.front();
-    //         tkeep_index_buf.pop();
-    //         tdata_good = udp_axis_packet_out.tdata(tkeep_index*8+7,0) == udp_axis_packet_in.tdata(tkeep_index*8+7,0);
-
-    //         std::cout << std::hex;
-    //         std::cout << "tdata_good " << tdata_good << " " << udp_axis_packet_out.tdata << " " << udp_axis_packet_in.tdata << std::endl;
-    //         std::cout << "tkeep_good " << tkeep_good << " " << udp_axis_packet_out.tkeep << " " << udp_axis_packet_in.tkeep << std::endl;
-    //         std::cout << "tlast_good " << tlast_good << " " << udp_axis_packet_out.tlast << " " << udp_axis_packet_in.tlast << std::endl;
-    //         std::cout << std::dec;
-    //         std::cout << std::endl;
-
-    //         good = tdata_good && tkeep_good && tlast_good;
-    //         random_retval = random_retval || (!good);
-
-    //         std::cout << "Random Test iteration " << i << " results " << good << std::endl;
-    //         std::cout << std::endl;
-    //     }
-    //     else{
-    //         std::cout << "No udp packet read for iteration " << i << std::endl;
-    //     }
-    // }
 
     static hls::stream <app_axis> to_app;
     static hls::stream <app_axis> from_app;
@@ -713,14 +564,25 @@ int main(){
     int first;
     int last;
 
+    int done;
+    int send_done;
+    int cycle_buffer;
+    int max_buffer;
+    int timer;
+    int max_timer;
+    int timeout;
+
     int tdata_good;
     int tkeep_good;
     int tlast_good;
+    int remote_port_good;
+    int local_port_good;
+    int remote_ip_good;
     int good;
 
     int random_retval = 0;
 
-    std::srand(239847237);
+    std::srand(23237);
 
     #define NTESTS 10000
     int tkeep_index[NTESTS];
@@ -729,12 +591,9 @@ int main(){
     app_axis app_results[NTESTS];
     meta meta_app_results[NTESTS];
     udp_axis udp_results[NTESTS];
-    meta meta_udp_results[NTESTS];
+    meta meta_results[NTESTS];
 
     meta metadata;
-    metadata.remote_port = std::rand();
-    metadata.local_port = std::rand();
-    metadata.remote_ip = std::rand();
 
     // construct test cases
     first=1;
@@ -756,7 +615,7 @@ int main(){
         udp_vectors[i].tdata.range(479,448) = std::rand();
         udp_vectors[i].tdata.range(511,480) = std::rand();
 
-        udp_vectors[i].tlast = std::rand() % 2;
+        udp_vectors[i].tlast = (i == NTESTS-1) ? 1 : std::rand() % 2;
 
         if(udp_vectors[i].tlast){
             udp_vectors[i].tkeep = 0x0;
@@ -773,114 +632,91 @@ int main(){
             udp_vectors[i].tkeep = 0xFFFFFFFFFFFFFFFF;
         }
 
+        if(first){
+            metadata.remote_port = std::rand();
+            metadata.local_port = std::rand();
+            metadata.remote_ip = std::rand();
+        }
         meta_vectors[i] = metadata;
 
         first = udp_vectors[i].tlast; // first is equal to last iteration's tlast
     }
 
-    // write in testcases with 1/3 chance to not send
     i=0;
-    while(i<NTESTS){
+    j=0;
+    done=0;
+    cycle_buffer=0;
+    max_buffer=3;
+    while(!done){
+        // write in testcases with 1/3 chance to not send
+        send_done = i == NTESTS;
         send = std::rand() % 3;
-        if(send){
+        if(!send_done && send){
             from_udp.write(udp_vectors[i]);
             meta_from_udp = meta_vectors[i];
-            udp_bridge(
-                from_udp,
-                to_app,
-                from_app,
-                to_udp,
-				meta_from_udp,
-				meta_to_app,
-                meta_from_app,
-                meta_to_udp
-            );
             i++;
-            check_meta(meta_to_app, meta_to_udp, metadata);
         }
-    }
-
-    // maximum 2 cycle delay +1 for safety
-    for(i=0; i<3; i++){
+        // cycle bridge
         udp_bridge(
             from_udp,
             to_app,
             from_app,
             to_udp,
-			meta_from_udp,
-			meta_to_app,
+            meta_from_udp,
+            meta_to_app,
             meta_from_app,
             meta_to_udp
         );
-        check_meta(meta_to_app, meta_to_udp, metadata);
+        // read testcases and metadata as soon as available
+        if(!to_app.empty()){
+            app_results[j] = to_app.read();
+            meta_app_results[j] = meta_to_app;            
+            j++;
+        }
+        if(send_done){
+            cycle_buffer++;
+        }
+        done = send_done && cycle_buffer == max_buffer;
     }
-
-    // read out app results
-    j=0;
-    while(!to_app.empty()){
-        app_results[j] = to_app.read();
-        j++;
-    }
-
-    // k=0;
-    // while(!meta_to_app.empty()){
-    //     meta_app_results[k] = meta_to_app.read();
-    //     k++;
-    // }
-    
-    // assert(j==k);
 
     // loopback results
     i=0;
-    while(i<j){
+    k=0;
+    done=0;
+    timer=0;
+    max_timer=1000;
+    timeout=0;
+    while(!done){
+        // write in testcases with 1/3 chance to not send        
+        send_done = i == j;
         send = std::rand() % 3;
-        if(send){
+        if(!send_done && send){
             from_app.write(app_results[i]);
-            meta_from_app = metadata;
-            udp_bridge(
-                from_udp,
-                to_app,
-                from_app,
-                to_udp,
-				meta_from_udp,
-				meta_to_app,
-                meta_from_app,
-                meta_to_udp
-            );
+            meta_from_app = meta_app_results[i];
             i++;
-            check_meta(meta_to_app, meta_to_udp, metadata);
         }
-    }
-
-    // should have no delay but +3 for safety
-    for(i=0; i<10000; i++){
+        // cycle bridge
         udp_bridge(
             from_udp,
             to_app,
             from_app,
             to_udp,
-			meta_from_udp,
-			meta_to_app,
+            meta_from_udp,
+            meta_to_app,
             meta_from_app,
             meta_to_udp
         );
-        check_meta(meta_to_app, meta_to_udp, metadata);
+        if(!to_udp.empty()){
+            udp_results[k] = to_udp.read();
+            meta_results[k] = meta_to_udp;            
+            k++;
+        }
+        if(send_done){
+            timer++;
+            timeout = timer == max_timer;
+        }
+        done = timeout || (send_done && k == NTESTS);
     }
-
-    // read out udp results
-    i=0;
-    while(!to_udp.empty()){
-        udp_results[i] = to_udp.read();
-        i++;
-    }
-
-    // k=0;
-    // while(!meta_to_udp.empty()){
-    //     meta_udp_results[k] = meta_to_udp.read();
-    //     k++;
-    // }
-
-    // assert(i==k);
 
     std::cout << NTESTS << " " << i << " " << j << " " << k << std::endl;
 
@@ -906,7 +742,27 @@ int main(){
             std::cout << std::dec;
             std::cout << std::endl;
 
-            good = tdata_good && tkeep_good && tlast_good;
+            remote_port_good = meta_results[k].remote_port == meta_vectors[k].remote_port;
+            local_port_good = meta_results[k].local_port == meta_vectors[k].local_port;
+            remote_ip_good = meta_results[k].remote_ip == meta_vectors[k].remote_ip;
+            
+            if(k<j){
+                std::cout << std::hex;
+                std::cout << "remote_port " << meta_app_results[k].remote_port << std::endl;
+                std::cout << "local_port " << meta_app_results[k].local_port << std::endl;
+                std::cout << "remote_ip " << meta_app_results[k].remote_ip << std::endl;
+                std::cout << std::dec;
+                std::cout << std::endl;
+            }
+            
+            std::cout << std::hex;
+            std::cout << "remote_port_good " << remote_port_good << " " << meta_results[k].remote_port << " " << meta_vectors[k].remote_port << std::endl;
+            std::cout << "local_port_good " << local_port_good << " " << meta_results[k].local_port << " " << meta_vectors[k].local_port << std::endl;
+            std::cout << "remote_ip_good " << remote_ip_good << " " << meta_results[k].remote_ip << " " << meta_vectors[k].remote_ip << std::endl;
+            std::cout << std::dec;
+            std::cout << std::endl;
+
+            good = tdata_good && tkeep_good && tlast_good && remote_port_good && local_port_good && remote_ip_good;
             random_retval = random_retval || (!good);
 
             std::cout << "Random Test iteration " << k << " results " << good << std::endl;
