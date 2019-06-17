@@ -111,11 +111,10 @@ void app_to_udp(
 #define STREAM_APP_TO_UDP 1
 #define END_APP_TO_UDP 2
 
-    static hls::stream <app_axis> axis_from_app_buf;
-    static hls::stream <meta> meta_from_app_buf;
-
-#pragma HLS stream variable=axis_from_app_buf depth=4
-#pragma HLS stream variable=meta_from_app_buf depth=4
+    static hls::stream <app_axis> app_axis_buf("app_to_udp_axis_int");
+    static hls::stream <meta> meta_buf("app_to_udp_meta_int");
+#pragma HLS stream variable=app_axis_buf depth=4
+#pragma HLS stream variable=meta_buf depth=4
 
     static app_axis app_axis_packet;
     static udp_axis udp_axis_packet;
@@ -124,17 +123,54 @@ void app_to_udp(
     static ap_uint <2> tkeep_buf;
     static int state = INIT_APP_TO_UDP;
 
-    // internal buf logic
-    if(!axis_from_app.empty() && !axis_from_app_buf.full()){
-        axis_from_app_buf.write(axis_from_app.read());
-        meta_from_app_buf.write(meta_from_app);
-    }
-
+    meta_to_udp.local_port=metadata.local_port;
+    meta_to_udp.remote_ip=metadata.remote_ip;
+    meta_to_udp.remote_port=metadata.remote_port;
     switch(state){
         case INIT_APP_TO_UDP:{
-            if(!axis_from_app_buf.empty()){
-                app_axis_packet = axis_from_app_buf.read();
-                metadata = meta_from_app_buf.read();
+            if(!axis_from_app.empty()){
+                // packet buffering
+                // no data is in fifo, directly use new data
+                if(app_axis_buf.empty()){
+                    app_axis_packet = axis_from_app.read();
+                    metadata = meta_from_app;
+                }
+                // use data existing in fifo
+                else{
+                    app_axis_packet = app_axis_buf.read();
+                    app_axis_buf.write(axis_from_app.read());
+                    metadata = meta_buf.read();
+                    meta_buf.write(meta_from_app);
+                }
+                // packet processing
+				udp_axis_packet.tdata.range(511,496) = app_axis_packet.tdest;
+                udp_axis_packet.tdata.range(495,0) = app_axis_packet.tdata.range(511,16);
+				udp_axis_packet.tkeep.range(63,62) = ap_uint <2> (0b11);
+                udp_axis_packet.tkeep.range(61,0) = app_axis_packet.tkeep.range(63,2);
+                tdata_buf = app_axis_packet.tdata.range(15,0);
+                tkeep_buf = app_axis_packet.tkeep.range(1,0);
+                if(app_axis_packet.tlast){
+                    if(app_axis_packet.tkeep[1]){
+                        udp_axis_packet.tlast = 0;
+                        state = END_APP_TO_UDP;
+                    }
+                    else{
+                        udp_axis_packet.tlast = app_axis_packet.tlast; //1
+                        state = INIT_APP_TO_UDP;
+                    }
+                }
+                else{
+                    udp_axis_packet.tlast = app_axis_packet.tlast; //0
+                    state = STREAM_APP_TO_UDP;
+                }
+                axis_to_udp.write(udp_axis_packet);
+                meta_to_udp = metadata;
+                break;
+            }
+            else if(!app_axis_buf.empty()){
+                app_axis_packet = app_axis_buf.read();
+                metadata = meta_buf.read();
+                // packet processing
 				udp_axis_packet.tdata.range(511,496) = app_axis_packet.tdest;
                 udp_axis_packet.tdata.range(495,0) = app_axis_packet.tdata.range(511,16);
 				udp_axis_packet.tkeep.range(63,62) = ap_uint <2> (0b11);
@@ -163,9 +199,49 @@ void app_to_udp(
             break;
         }
         case STREAM_APP_TO_UDP:{
-            if(!axis_from_app_buf.empty()){
-                app_axis_packet = axis_from_app_buf.read();
-                metadata = meta_from_app_buf.read();
+            if(!axis_from_app.empty()){
+                // packet buffering
+                // no data is in fifo, directly use new data
+                if(app_axis_buf.empty()){
+                    app_axis_packet = axis_from_app.read();
+                    metadata = meta_from_app;
+                }
+                // use data existing in fifo
+                else{
+                    app_axis_packet = app_axis_buf.read();
+                    app_axis_buf.write(axis_from_app.read());
+                    metadata = meta_buf.read();
+                    meta_buf.write(meta_from_app);
+                }
+                // packet processing
+                udp_axis_packet.tdata.range(511,496) = tdata_buf;
+				udp_axis_packet.tdata.range(495,0) = app_axis_packet.tdata.range(511,16);
+				udp_axis_packet.tkeep.range(63,62) = tkeep_buf;
+				udp_axis_packet.tkeep.range(61,0) = app_axis_packet.tkeep.range(63,2);
+                tdata_buf = app_axis_packet.tdata.range(15,0);
+                tkeep_buf = app_axis_packet.tkeep.range(1,0);
+                if(app_axis_packet.tlast){
+                    if(app_axis_packet.tkeep[1]){
+                        udp_axis_packet.tlast = 0;
+                        state = END_APP_TO_UDP;
+                    }
+                    else{
+                        udp_axis_packet.tlast = app_axis_packet.tlast; //1
+                        state = INIT_APP_TO_UDP;
+                    }
+                }
+                else{
+                    udp_axis_packet.tlast = app_axis_packet.tlast; //0
+                    state = STREAM_APP_TO_UDP;
+                }
+                axis_to_udp.write(udp_axis_packet);
+                meta_to_udp = metadata;
+                break;
+            }
+            else if(!app_axis_buf.empty()){
+                app_axis_packet = app_axis_buf.read();
+                metadata = meta_buf.read();
+                // packet processing
                 udp_axis_packet.tdata.range(511,496) = tdata_buf;
 				udp_axis_packet.tdata.range(495,0) = app_axis_packet.tdata.range(511,16);
 				udp_axis_packet.tkeep.range(63,62) = tkeep_buf;
@@ -194,6 +270,11 @@ void app_to_udp(
             break;
         }
         case END_APP_TO_UDP:{
+            if(!axis_from_app.empty() && !app_axis_buf.full()){
+                app_axis_buf.write(axis_from_app.read());
+                meta_buf.write(meta_from_app);
+            }
+            // packet processing
             udp_axis_packet.tdata.range(511,496) = tdata_buf;
             udp_axis_packet.tdata.range(495,0) = ap_uint <496> (0);
             udp_axis_packet.tkeep.range(63,62) = tkeep_buf;
@@ -241,9 +322,7 @@ void udp_bridge (
 #pragma HLS INTERFACE ap_none port=meta_from_app
 #pragma HLS INTERFACE ap_none port=meta_to_udp
 
-#ifdef __SYNTHESIS
 #pragma HLS INTERFACE ap_ctrl_none port=return
-#endif
 
     udp_to_app(axis_from_udp, axis_to_app, meta_from_udp, meta_to_app);
     app_to_udp(axis_from_app, axis_to_udp, meta_from_app, meta_to_udp);
