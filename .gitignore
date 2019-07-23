@@ -1,6 +1,3 @@
-# ignore HLS project
-test
-
 # ignore random Vivado files
 vivado*
 .Xil

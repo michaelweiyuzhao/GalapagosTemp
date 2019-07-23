@@ -5,3 +5,6 @@ AxiStream without tdest to AxiStream with tdest and vice versa
 
 2. 64 bit parallel self-synchronous scrambler (`scrambler64`)
 Scrambler described in IEEE 802.3 Clause 49.2.6 (64b66b PCS)
+
+3. Block synchronization (`block\_sync`)
+Block synchronizer described in IEEE 802.3 Clause 49.2.6 (64b66b PCS)
