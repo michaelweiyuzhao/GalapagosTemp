@@ -1,4 +1,8 @@
 # ignore random Vivado files
 vivado*
+gtwiz*
 .Xil
 .nfs*
+
+# ignore gt top
+**/gtwizard_ultrascale_0_example_top*.v

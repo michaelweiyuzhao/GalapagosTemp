@@ -1,4 +1,3 @@
-#include "block_sync.h"
 #include <ap_int.h>
 
 void block_sync(

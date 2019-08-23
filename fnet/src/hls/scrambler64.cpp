@@ -14,7 +14,7 @@ void scrambler64(
     #pragma HLS INTERFACE ap_none port=data_in
     #pragma HLS INTERFACE ap_none port=data_out
 
-    static ap_uint<64> state_reg;
+    static ap_uint<64> state_reg = "0xaaaaaaaaaaaaaaaa";
     ap_uint<1> tap1_xor_tap2;
     ap_uint<1> result;
 
