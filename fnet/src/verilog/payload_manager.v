@@ -1,4 +1,3 @@
-// drops all incoming IDLE packets
 module payload_manager(
     input  [63:0] payload_in,
     input   [1:0] header_in,

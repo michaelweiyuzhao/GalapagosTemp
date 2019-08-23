@@ -51,6 +51,9 @@ module payload_decoder(
     reg        unpause_int;
     reg        pause_src_int;
 
+    // Control signals
+    reg        load_buf;
+
     // Encoding parameters
     localparam T_S1    = 8'h1e;
     localparam T_S2    = 8'h2d;
@@ -98,6 +101,7 @@ module payload_decoder(
 
     always @(*) begin
         // Defaults
+        load_buf          = 1'b1;
         m_axis_tdata_int  = {64{1'b0}};
         m_axis_tkeep_int  = {8{1'b0}};
         m_axis_tuser_int  = m_axis_tuser_reg;
@@ -169,98 +173,104 @@ module payload_decoder(
                                 next_state        = START;
                             end
                             {H_CTRL,T_S5}: begin
-                                if(header_in == H_DATA) begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],payload_in[63:40]};
-                                    m_axis_tkeep_int  = 8'hff;
-                                    m_axis_tuser_int  = payload_reg[55:48];
-                                    m_axis_tdest_int  = payload_reg[47:40];
-                                    m_axis_tlast_int  = 1'b0;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = SEND_MIDDLE;
+                                if(valid_in) begin
+                                    if(header_in == H_DATA) begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],payload_in[63:40]};
+                                        m_axis_tkeep_int  = 8'hff;
+                                        m_axis_tuser_int  = payload_reg[55:48];
+                                        m_axis_tdest_int  = payload_reg[47:40];
+                                        m_axis_tlast_int  = 1'b0;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = SEND_MIDDLE;
+                                    end
+                                    else begin
+                                        case({header_in,payload_in[63:56]})
+                                            {H_CTRL,T_ERROR}: begin
+                                                m_error_int       = 1'b1;
+                                                next_state        = START;
+                                            end
+                                            {H_CTRL,T_T0}: begin
+                                                m_axis_tdata_int  = {payload_reg[39:0],{24{1'b0}}};
+                                                m_axis_tkeep_int  = 8'hf8;
+                                                m_axis_tuser_int  = payload_reg[55:48];
+                                                m_axis_tdest_int  = payload_reg[47:40];
+                                                m_axis_tlast_int  = 1'b1;
+                                                m_axis_tvalid_int = 1'b1;
+                                                next_state        = END;
+                                            end
+                                            {H_CTRL,T_T1}: begin
+                                                m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:48],{16{1'b0}}};
+                                                m_axis_tkeep_int  = 8'hfc;
+                                                m_axis_tuser_int  = payload_reg[55:48];
+                                                m_axis_tdest_int  = payload_reg[47:40];
+                                                m_axis_tlast_int  = 1'b1;
+                                                m_axis_tvalid_int = 1'b1;
+                                                next_state        = END;
+                                            end
+                                            {H_CTRL,T_T2}: begin
+                                                m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:40],{8{1'b0}}};
+                                                m_axis_tkeep_int  = 8'hfe;
+                                                m_axis_tuser_int  = payload_reg[55:48];
+                                                m_axis_tdest_int  = payload_reg[47:40];
+                                                m_axis_tlast_int  = 1'b1;
+                                                m_axis_tvalid_int = 1'b1;
+                                                next_state        = END;
+                                            end
+                                            {H_CTRL,T_T3}: begin
+                                                m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                                m_axis_tkeep_int  = 8'hff;
+                                                m_axis_tuser_int  = payload_reg[55:48];
+                                                m_axis_tdest_int  = payload_reg[47:40];
+                                                m_axis_tlast_int  = 1'b1;
+                                                m_axis_tvalid_int = 1'b1;
+                                                next_state        = END;
+                                            end
+                                            {H_CTRL,T_T4}: begin
+                                                m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                                m_axis_tkeep_int  = 8'hff;
+                                                m_axis_tuser_int  = payload_reg[55:48];
+                                                m_axis_tdest_int  = payload_reg[47:40];
+                                                m_axis_tlast_int  = 1'b0;
+                                                m_axis_tvalid_int = 1'b1;
+                                                next_state        = SEND_LAST;
+                                            end
+                                            {H_CTRL,T_T5}: begin
+                                                m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                                m_axis_tkeep_int  = 8'hff;
+                                                m_axis_tuser_int  = payload_reg[55:48];
+                                                m_axis_tdest_int  = payload_reg[47:40];
+                                                m_axis_tlast_int  = 1'b0;
+                                                m_axis_tvalid_int = 1'b1;
+                                                next_state        = SEND_LAST;
+                                            end
+                                            {H_CTRL,T_T6}: begin
+                                                m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                                m_axis_tkeep_int  = 8'hff;
+                                                m_axis_tuser_int  = payload_reg[55:48];
+                                                m_axis_tdest_int  = payload_reg[47:40];
+                                                m_axis_tlast_int  = 1'b0;
+                                                m_axis_tvalid_int = 1'b1;
+                                                next_state        = SEND_LAST;
+                                            end
+                                            {H_CTRL,T_T7}: begin
+                                                m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                                m_axis_tkeep_int  = 8'hff;
+                                                m_axis_tuser_int  = payload_reg[55:48];
+                                                m_axis_tdest_int  = payload_reg[47:40];
+                                                m_axis_tlast_int  = 1'b0;
+                                                m_axis_tvalid_int = 1'b1;
+                                                next_state        = SEND_LAST;
+                                            end
+                                            default: begin
+                                                m_error_int = 1'b1;
+                                                next_state  = START;
+                                            end
+                                        endcase
+                                    end
                                 end
                                 else begin
-                                    case({header_in,payload_in[63:56]})
-                                        {H_CTRL,T_ERROR}: begin
-                                            m_error_int       = 1'b1;
-                                            next_state        = START;
-                                        end
-                                        {H_CTRL,T_T0}: begin
-                                            m_axis_tdata_int  = {payload_reg[39:0],{24{1'b0}}};
-                                            m_axis_tkeep_int  = 8'hf8;
-                                            m_axis_tuser_int  = payload_reg[55:48];
-                                            m_axis_tdest_int  = payload_reg[47:40];
-                                            m_axis_tlast_int  = 1'b1;
-                                            m_axis_tvalid_int = 1'b1;
-                                            next_state        = START;
-                                        end
-                                        {H_CTRL,T_T1}: begin
-                                            m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:48],{16{1'b0}}};
-                                            m_axis_tkeep_int  = 8'hfc;
-                                            m_axis_tuser_int  = payload_reg[55:48];
-                                            m_axis_tdest_int  = payload_reg[47:40];
-                                            m_axis_tlast_int  = 1'b1;
-                                            m_axis_tvalid_int = 1'b1;
-                                            next_state        = START;
-                                        end
-                                        {H_CTRL,T_T2}: begin
-                                            m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:40],{8{1'b0}}};
-                                            m_axis_tkeep_int  = 8'hfe;
-                                            m_axis_tuser_int  = payload_reg[55:48];
-                                            m_axis_tdest_int  = payload_reg[47:40];
-                                            m_axis_tlast_int  = 1'b1;
-                                            m_axis_tvalid_int = 1'b1;
-                                            next_state        = START;
-                                        end
-                                        {H_CTRL,T_T3}: begin
-                                            m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                            m_axis_tkeep_int  = 8'hff;
-                                            m_axis_tuser_int  = payload_reg[55:48];
-                                            m_axis_tdest_int  = payload_reg[47:40];
-                                            m_axis_tlast_int  = 1'b1;
-                                            m_axis_tvalid_int = 1'b1;
-                                            next_state        = START;
-                                        end
-                                        {H_CTRL,T_T4}: begin
-                                            m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                            m_axis_tkeep_int  = 8'hff;
-                                            m_axis_tuser_int  = payload_reg[55:48];
-                                            m_axis_tdest_int  = payload_reg[47:40];
-                                            m_axis_tlast_int  = 1'b0;
-                                            m_axis_tvalid_int = 1'b1;
-                                            next_state        = SEND_LAST;
-                                        end
-                                        {H_CTRL,T_T5}: begin
-                                            m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                            m_axis_tkeep_int  = 8'hff;
-                                            m_axis_tuser_int  = payload_reg[55:48];
-                                            m_axis_tdest_int  = payload_reg[47:40];
-                                            m_axis_tlast_int  = 1'b0;
-                                            m_axis_tvalid_int = 1'b1;
-                                            next_state        = SEND_LAST;
-                                        end
-                                        {H_CTRL,T_T6}: begin
-                                            m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                            m_axis_tkeep_int  = 8'hff;
-                                            m_axis_tuser_int  = payload_reg[55:48];
-                                            m_axis_tdest_int  = payload_reg[47:40];
-                                            m_axis_tlast_int  = 1'b0;
-                                            m_axis_tvalid_int = 1'b1;
-                                            next_state        = SEND_LAST;
-                                        end
-                                        {H_CTRL,T_T7}: begin
-                                            m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                            m_axis_tkeep_int  = 8'hff;
-                                            m_axis_tuser_int  = payload_reg[55:48];
-                                            m_axis_tdest_int  = payload_reg[47:40];
-                                            m_axis_tlast_int  = 1'b0;
-                                            m_axis_tvalid_int = 1'b1;
-                                            next_state        = SEND_LAST;
-                                        end
-                                        default: begin
-                                            m_error_int = 1'b1;
-                                            next_state  = START;
-                                        end
-                                    endcase
+                                    load_buf   = 1'b0;
+                                    next_state = START;
                                 end
                             end
                             default: begin
@@ -270,82 +280,88 @@ module payload_decoder(
                         endcase
                     end
                     SEND_MIDDLE: begin
-                        if(header_in == H_DATA) begin
-                            m_axis_tdata_int  = {payload_reg[39:0],payload_in[63:40]};
-                            m_axis_tkeep_int  = 8'hff;
-                            m_axis_tuser_int  = payload_reg[55:48];
-                            m_axis_tdest_int  = payload_reg[47:40];
-                            m_axis_tlast_int  = 1'b0;
-                            m_axis_tvalid_int = 1'b1;
-                            next_state        = SEND_MIDDLE;
+                        if(valid_in) begin
+                            if(header_in == H_DATA) begin
+                                m_axis_tdata_int  = {payload_reg[39:0],payload_in[63:40]};
+                                m_axis_tkeep_int  = 8'hff;
+                                m_axis_tuser_int  = payload_reg[55:48];
+                                m_axis_tdest_int  = payload_reg[47:40];
+                                m_axis_tlast_int  = 1'b0;
+                                m_axis_tvalid_int = 1'b1;
+                                next_state        = SEND_MIDDLE;
+                            end
+                            else begin
+                                case({header_in,payload_in[63:56]})
+                                    {H_CTRL,T_ERROR}: begin
+                                        m_error_int       = 1'b1;
+                                        next_state        = START;
+                                    end
+                                    {H_CTRL,T_T0}: begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],{24{1'b0}}};
+                                        m_axis_tkeep_int  = 8'hf8;
+                                        m_axis_tlast_int  = 1'b1;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = END;
+                                    end
+                                    {H_CTRL,T_T1}: begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:48],{16{1'b0}}};
+                                        m_axis_tkeep_int  = 8'hfc;
+                                        m_axis_tlast_int  = 1'b1;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = END;
+                                    end
+                                    {H_CTRL,T_T2}: begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:40],{8{1'b0}}};
+                                        m_axis_tkeep_int  = 8'hfe;
+                                        m_axis_tlast_int  = 1'b1;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = END;
+                                    end
+                                    {H_CTRL,T_T3}: begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                        m_axis_tkeep_int  = 8'hff;
+                                        m_axis_tlast_int  = 1'b1;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = END;
+                                    end
+                                    {H_CTRL,T_T4}: begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                        m_axis_tkeep_int  = 8'hff;
+                                        m_axis_tlast_int  = 1'b0;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = SEND_LAST;
+                                    end
+                                    {H_CTRL,T_T5}: begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                        m_axis_tkeep_int  = 8'hff;
+                                        m_axis_tlast_int  = 1'b0;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = SEND_LAST;
+                                    end
+                                    {H_CTRL,T_T6}: begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                        m_axis_tkeep_int  = 8'hff;
+                                        m_axis_tlast_int  = 1'b0;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = SEND_LAST;
+                                    end
+                                    {H_CTRL,T_T7}: begin
+                                        m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
+                                        m_axis_tkeep_int  = 8'hff;
+                                        m_axis_tlast_int  = 1'b0;
+                                        m_axis_tvalid_int = 1'b1;
+                                        next_state        = SEND_LAST;
+                                    end
+                                    default: begin
+                                        m_error_int = 1'b1;
+                                        next_state  = START;
+                                    end
+                                endcase
+                            end
                         end
                         else begin
-                            case({header_in,payload_in[63:56]})
-                                {H_CTRL,T_ERROR}: begin
-                                    m_error_int       = 1'b1;
-                                    next_state        = START;
-                                end
-                                {H_CTRL,T_T0}: begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],{24{1'b0}}};
-                                    m_axis_tkeep_int  = 8'hf8;
-                                    m_axis_tlast_int  = 1'b1;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = START;
-                                end
-                                {H_CTRL,T_T1}: begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:48],{16{1'b0}}};
-                                    m_axis_tkeep_int  = 8'hfc;
-                                    m_axis_tlast_int  = 1'b1;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = START;
-                                end
-                                {H_CTRL,T_T2}: begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:40],{8{1'b0}}};
-                                    m_axis_tkeep_int  = 8'hfe;
-                                    m_axis_tlast_int  = 1'b1;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = START;
-                                end
-                                {H_CTRL,T_T3}: begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                    m_axis_tkeep_int  = 8'hff;
-                                    m_axis_tlast_int  = 1'b1;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = START;
-                                end
-                                {H_CTRL,T_T4}: begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                    m_axis_tkeep_int  = 8'hff;
-                                    m_axis_tlast_int  = 1'b0;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = SEND_LAST;
-                                end
-                                {H_CTRL,T_T5}: begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                    m_axis_tkeep_int  = 8'hff;
-                                    m_axis_tlast_int  = 1'b0;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = SEND_LAST;
-                                end
-                                {H_CTRL,T_T6}: begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                    m_axis_tkeep_int  = 8'hff;
-                                    m_axis_tlast_int  = 1'b0;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = SEND_LAST;
-                                end
-                                {H_CTRL,T_T7}: begin
-                                    m_axis_tdata_int  = {payload_reg[39:0],payload_in[55:32]};
-                                    m_axis_tkeep_int  = 8'hff;
-                                    m_axis_tlast_int  = 1'b0;
-                                    m_axis_tvalid_int = 1'b1;
-                                    next_state        = SEND_LAST;
-                                end
-                                default: begin
-                                    m_error_int = 1'b1;
-                                    next_state  = START;
-                                end
-                            endcase
+                            load_buf   = 1'b0;
+                            next_state = SEND_MIDDLE;
                         end
                     end
                     SEND_LAST: begin
@@ -372,23 +388,29 @@ module payload_decoder(
                                 next_state        = START;
                             end
                             {H_CTRL,T_T7}: begin
-                                case({header_in,payload_in[63:56]})
-                                    {H_CTRL,T_ERROR}: begin
-                                        m_error_int = 1'b1;
-                                        next_state  = START;
-                                    end
-                                    {H_CTRL,T_T0}: begin
-                                        m_axis_tdata_int  = {payload_reg[31:0],{32{1'b0}}};
-                                        m_axis_tkeep_int  = 8'hf0;
-                                        m_axis_tlast_int  = 1'b1;
-                                        m_axis_tvalid_int = 1'b1;
-                                        next_state        = END;
-                                    end
-                                    default: begin
-                                        m_error_int = 1'b1;
-                                        next_state  = START;
-                                    end
-                                endcase
+                                if(valid_in) begin
+                                    case({header_in,payload_in[63:56]})
+                                        {H_CTRL,T_ERROR}: begin
+                                            m_error_int = 1'b1;
+                                            next_state  = START;
+                                        end
+                                        {H_CTRL,T_T0}: begin
+                                            m_axis_tdata_int  = {payload_reg[31:0],{32{1'b0}}};
+                                            m_axis_tkeep_int  = 8'hf0;
+                                            m_axis_tlast_int  = 1'b1;
+                                            m_axis_tvalid_int = 1'b1;
+                                            next_state        = END;
+                                        end
+                                        default: begin
+                                            m_error_int = 1'b1;
+                                            next_state  = START;
+                                        end
+                                    endcase
+                                end
+                                else begin
+                                    load_buf   = 1'b0;
+                                    next_state = SEND_LAST;
+                                end
                             end
                             default: begin
                                 m_error_int = 1'b1;
@@ -431,9 +453,16 @@ module payload_decoder(
 
     // Payload buffers
     always @(posedge clk_in) begin
-        payload_reg <= payload_in;
-        header_reg  <= header_in;
-        valid_reg   <= valid_in;
+        if(rst_in) begin
+            payload_reg <= {64{1'b0}};
+            header_reg  <= {2{1'b0}};
+            valid_reg   <= 1'b0;
+        end
+        else if(load_buf) begin
+            payload_reg <= payload_in;
+            header_reg  <= header_in;
+            valid_reg   <= valid_in;
+        end
     end
 
     // Control buffers

@@ -76,7 +76,7 @@ module payload_encoder(
     // Internal buffers
     reg [23:0] tdata_temp;
     reg  [2:0] tkeep_temp;
-    
+
     // State parameters
     localparam START       = 3'b001;
     localparam SEND_MIDDLE = 3'b010;
@@ -250,14 +250,26 @@ module payload_encoder(
 
     // Control buffers
     always @(posedge clk_in) begin
-        inject_pause_reg   <= inject_pause_in;
-        pause_reg          <= pause_in;
+        if(rst_in) begin
+            inject_pause_reg <= 1'b0;
+            pause_reg        <= 1'b0;
+        end
+        else begin
+            inject_pause_reg <= inject_pause_in;
+            pause_reg        <= pause_in;
+        end
     end
 
     // Internal buffers
     always @(posedge clk_in) begin
-        tdata_temp <= s_axis_tdata_reg[23:0];
-        tkeep_temp <= s_axis_tkeep_reg[2:0];
+        if(rst_in) begin
+            tdata_temp <= {24{1'b0}};
+            tkeep_temp <= {3{1'b0}};
+        end
+        else if(s_axis_tvalid_reg) begin
+            tdata_temp <= s_axis_tdata_reg[23:0];
+            tkeep_temp <= s_axis_tkeep_reg[2:0];
+        end
     end
 
     // State logic
