@@ -1,14 +1,14 @@
-# fnet: A Low Level Protocol for Intra-Rack Communication
+# Aqueduct: A Low Level Protocol for Intra-Rack Communication
 
 ## 1. Introduction
 
-fnet (subject to change) is a low level protocol with flow control and error checking without the overhead of Ethernet.
+Aqueduct is a low level protocol with flow control and error checking without the overhead of Ethernet.
 
 ---
 
 ## 2. Specification
 
-This protocol builds on sections of the 64b66b encoding PCS and MII detailed in IEEE 802.3 Clause 49 with the added benefit of source and destination signalling, and flow control capabilities within a lower level protocol. This protocol was originally designed to facilitate communication between up to 48 transceivers connected through an Arista 7130 layer one switch.
+The Aqueduct protocol builds on sections of the 64b66b encoding PCS and MII detailed in IEEE 802.3 Clause 49 with the added benefit of source and destination signalling, and flow control capabilities within a lower level protocol. This protocol was originally designed to facilitate communication between up to 48 transceivers connected through an Arista 7130 layer one switch.
 
 ### 2.1 Terms and Definitions
 
