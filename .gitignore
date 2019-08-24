@@ -1,5 +1,6 @@
 # ignore random Vivado files
 vivado*
+webtalk*
 gtwiz*
 .Xil
 .nfs*
