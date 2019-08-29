@@ -189,6 +189,17 @@ module payload_decoder(
                                                 m_error_int       = 1'b1;
                                                 next_state        = START;
                                             end
+                                            {H_CTRL,T_PAUSE}: begin
+                                                load_buf          = 1'b0;
+                                                pause_int         = &payload_in[39:8];
+                                                unpause_int       = !(&payload_in[39:8]);
+                                                pause_src_int     = payload_in[55:48];
+                                                next_state        = START;
+                                            end
+                                            {H_CTRL,T_IDLE}: begin
+                                                load_buf          = 1'b0;
+                                                next_state        = START;
+                                            end
                                             {H_CTRL,T_T0}: begin
                                                 m_axis_tdata_int  = {payload_reg[39:0],{24{1'b0}}};
                                                 m_axis_tkeep_int  = 8'hf8;
@@ -296,6 +307,17 @@ module payload_decoder(
                                         m_error_int       = 1'b1;
                                         next_state        = START;
                                     end
+                                    {H_CTRL,T_PAUSE}: begin
+                                        load_buf          = 1'b0;
+                                        pause_int         = &payload_in[39:8];
+                                        unpause_int       = !(&payload_in[39:8]);
+                                        pause_src_int     = payload_in[55:48];
+                                        next_state        = SEND_MIDDLE;
+                                    end
+                                    {H_CTRL,T_IDLE}: begin
+                                        load_buf          = 1'b0;
+                                        next_state        = SEND_MIDDLE;
+                                    end
                                     {H_CTRL,T_T0}: begin
                                         m_axis_tdata_int  = {payload_reg[39:0],{24{1'b0}}};
                                         m_axis_tkeep_int  = 8'hf8;
@@ -391,8 +413,19 @@ module payload_decoder(
                                 if(valid_in) begin
                                     case({header_in,payload_in[63:56]})
                                         {H_CTRL,T_ERROR}: begin
-                                            m_error_int = 1'b1;
-                                            next_state  = START;
+                                            m_error_int       = 1'b1;
+                                            next_state        = START;
+                                        end
+                                        {H_CTRL,T_PAUSE}: begin
+                                            load_buf          = 1'b0;
+                                            pause_int         = &payload_in[39:8];
+                                            unpause_int       = !(&payload_in[39:8]);
+                                            pause_src_int     = payload_in[55:48];
+                                            next_state        = SEND_LAST;
+                                        end
+                                        {H_CTRL,T_IDLE}: begin
+                                            load_buf          = 1'b0;
+                                            next_state        = SEND_LAST;
                                         end
                                         {H_CTRL,T_T0}: begin
                                             m_axis_tdata_int  = {payload_reg[31:0],{32{1'b0}}};

@@ -39,8 +39,8 @@ module payload_encoder(
     localparam H_CTRL  = 2'b10;
 
     // Special encoding transfers
-    wire [63:0] PAUSE   = {T_PAUSE,s_axis_tuser,{8{1'b0}},{40{1'b1}},{8{1'b0}}};
-    wire [63:0] UNPAUSE = {T_PAUSE,s_axis_tuser,{8{1'b0}},{40{1'b0}},{8{1'b0}}};
+    wire [63:0] PAUSE   = {T_PAUSE,s_axis_tuser,{8{1'b0}},{32{1'b1}},{8{1'b0}}};
+    wire [63:0] UNPAUSE = {T_PAUSE,s_axis_tuser,{8{1'b0}},{32{1'b0}},{8{1'b0}}};
     wire [63:0] IDLE    = {T_IDLE,{56{1'b0}}};
 
     // Handshake overflow buffer control

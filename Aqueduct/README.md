@@ -168,7 +168,7 @@ The [payload manager](src/verilog/payload_manager.v) checks incoming payloads an
 
 #### 3.2.5 Asynchronous FIFO
 
-The asynchronous FIFO is implemented using the Xilinx Generic FIFO IP and buffers all payload and header bits and allows the data to cross into the tx_usrclk2 domain from the rx_usrclk2 domain. The FIFO is a generic asynchronous FIFO with `almost_full`, `full`, `almost_empty` and `empty` warning signals. The FIFO depth is set to 512 with `almost_full` set to 383 and `almost_empty` set to 127. The `almost_full` and `almost_empty` signals are sent to the pause manager to generate the correct pause signal to send to the encoder as `inject_pause_in`. The `full` signal is unused but can be used for error reporting. The `empty` signal is inverted and sent to the decoder as `valid_in`. All signals are synchronized as necessary. The payload and header are used by the decoder.
+The asynchronous FIFO is implemented using the Xilinx Generic FIFO IP and buffers all payload and header bits and allows the data to cross into the tx_usrclk2 domain from the rx_usrclk2 domain. The FIFO is a generic asynchronous FIFO with `full`, `empty`, and `prog_full` warning signals. The `prog_full` signal is used to control pausing. The FIFO depth is set to 512 with `prog_full` set to 16. An `almost_full` and an `almost_empty` is constructed from `prog_full`. The signal is used directly as `almost_full` (even though the FIFO has 512 depth and is no where near full) and the same signal is delayed 16 cycles using a shift register to produce `almost_empty`. The `almost_full` and `almost_empty` signals are sent to the pause manager to generate the correct pause signal to send to the encoder as `inject_pause_in`. This implementation will not work in every case but avoids synchronization problems and is simple. The `full` signal is unused but can be used for error reporting. The `empty` signal is inverted and sent to the decoder as `valid_in`. All signals are synchronized as necessary. The payload and header are used by the decoder.
 
 #### 3.2.6 Pause Manager
 
@@ -208,7 +208,7 @@ Xilinx GTY User Guide | <https://www.xilinx.com/support/documentation/user_guide
 Xilinx Transceiver Wizard Product Guide | <https://www.xilinx.com/support/documentation/ip_documentation/gtwizard_ultrascale/v1_7/pg182-gtwizard-ultrascale.pdf>
 IEEE 802.3 Clause 49 64b66b Encoding | <http://www.ieee802.org/3/ap/public/sep05/szczepanek_02_0905.pdf>
 AXI4-Stream Specification | <http://www.mrc.uidaho.edu/mrc/people/jff/EO_440/Handouts/AMBA%20Protocols/AXI-Stream/IHI0051A_amba4_axi4_stream_v1_0_protocol_spec.pdf>
-Asynchronous FIFOs | <http://www.asic-world.com/examples/verilog/asyn_fifo.html>
+Asynchronous FIFO | <https://www.xilinx.com/support/documentation/ip_documentation/fifo_generator/v13_2/pg057-fifo-generator.pdf>
 CRC32 Byte by Byte | <http://www.sunshine2k.de/articles/coding/crc/understanding_crc.html#ch44>
 
 ---
