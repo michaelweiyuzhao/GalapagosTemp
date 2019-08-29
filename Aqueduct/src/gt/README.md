@@ -18,7 +18,7 @@ When IP configuration is finished, right click the generated IP and select "Open
 
 ## Top Level Modifications
 
-The top level file of the example design requires modification for general use. More information can be found on the PC Group DokuWiki under page `gtwiz64b66b`. For those who are not a part of PC Group, below are the high level descriptions on the modifications necessary:
+The top level file of the example design requires modification for general use. for legal reasons the top level source cannot be included in this repository. Below are the high level descriptions on the modifications necessary:
 
 1. Add tx and rx usrclk2 outputs and directly connect to transceiver.
 2. Synchronize input reset to tx and rx usrclk2 and add as tx and rx reset outputs.
@@ -26,3 +26,5 @@ The top level file of the example design requires modification for general use. 
 4. Add tx and rx header inputs and connect directly to transceiver.
 5. Add block sync signal slip as an input and connect directly to transceiver.
 6. Add block sync signal block lock as an input and replace existing data valid generation with block lock.
+
+For those who are not a part of PC Group more information can be found on the PC Group DokuWiki under page `gtwiz64b66b`.
