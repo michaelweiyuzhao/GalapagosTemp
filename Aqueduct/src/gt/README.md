@@ -27,4 +27,4 @@ The top level file of the example design requires modification for general use. 
 5. Add block sync signal slip as an input and connect directly to transceiver.
 6. Add block sync signal block lock as an input and replace existing data valid generation with block lock.
 
-For those who are not a part of PC Group more information can be found on the PC Group DokuWiki under page `gtwiz64b66b`.
+For those who are a part of PC Group more information can be found on the PC Group DokuWiki under page `gtwiz64b66b`.
